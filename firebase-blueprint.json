@@ -1,0 +1,109 @@
+{
+  "entities": {
+    "User": {
+      "title": "Usuário",
+      "description": "Perfil de usuário do IPAG (Aluno, Professor, Pai ou Admin)",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["STUDENT", "TEACHER", "PARENT", "ADMIN"] },
+        "avatar": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "Course": {
+      "title": "Curso",
+      "description": "Curso técnico oferecido pela instituição",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "duration": { "type": "string" },
+        "thumbnail": { "type": "string" }
+      },
+      "required": ["name", "description"]
+    },
+    "News": {
+      "title": "Notícia",
+      "description": "Publicação institucional",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "authorId": { "type": "string" },
+        "publishedAt": { "type": "string", "format": "date-time" },
+        "image": { "type": "string" }
+      },
+      "required": ["title", "content", "authorId"]
+    },
+    "Grade": {
+      "title": "Nota",
+      "description": "Avaliação acadêmica de um aluno",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "subject": { "type": "string" },
+        "value": { "type": "number" },
+        "semester": { "type": "integer" },
+        "date": { "type": "string", "format": "date-time" }
+      },
+      "required": ["studentId", "subject", "value"]
+    },
+    "Attendance": {
+      "title": "Presença",
+      "description": "Registro de presença do aluno",
+      "type": "object",
+      "properties": {
+        "studentId": { "type": "string" },
+        "subject": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["PRESENT", "ABSENT", "LATE"] }
+      },
+      "required": ["studentId", "subject", "date", "status"]
+    },
+    "Assignment": {
+      "title": "Tarefa",
+      "description": "Atividade ou trabalho para o aluno",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "subject": { "type": "string" },
+        "dueDate": { "type": "string", "format": "date-time" },
+        "description": { "type": "string" },
+        "isCompleted": { "type": "boolean" },
+        "studentId": { "type": "string" }
+      },
+      "required": ["title", "dueDate", "studentId"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Coleção de todos os usuários autenticados"
+    },
+    "/courses/{courseId}": {
+      "schema": "Course",
+      "description": "Cursos técnicos disponíveis"
+    },
+    "/news/{newsId}": {
+      "schema": "News",
+      "description": "Mural de notícias da escola"
+    },
+    "/grades/{gradeId}": {
+      "schema": "Grade",
+      "description": "Notas dos alunos por disciplina"
+    },
+    "/attendance/{attendanceId}": {
+      "schema": "Attendance",
+      "description": "Registros de frequência"
+    },
+    "/assignments/{assignmentId}": {
+      "schema": "Assignment",
+      "description": "Tarefas e trabalhos acadêmicos"
+    }
+  }
+}

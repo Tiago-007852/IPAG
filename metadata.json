@@ -1,0 +1,6 @@
+{
+  "name": "IPAG Huambo - Portal Institucional",
+  "description": "Portal oficial do Instituto Poltécnico de Administração e Gestão do Huambo. Excelência acadêmica, inovação e tecnologia no ensino médio técnico.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["firebase", "ai_tutor", "student_portal"]
+}

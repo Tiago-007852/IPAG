@@ -1,0 +1,35 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@500;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  
+  /* Sleek Interface Color Palette */
+  --color-brand-blue: #1e3a8a; /* blue-900 */
+  --color-brand-blue-dark: #172554; /* blue-950 */
+  --color-brand-gold: #fbbf24; /* amber-400 */
+  --color-brand-gold-dark: #92400e; /* amber-800 */
+  --color-brand-gold-light: #fffbeb; /* amber-50 */
+  --color-brand-gray: #f8fafc; /* slate-50 */
+}
+
+@layer base {
+  body {
+    @apply bg-brand-gray text-slate-900 dark:bg-zinc-950 dark:text-zinc-50 antialiased selection:bg-brand-blue/10;
+  }
+}
+
+.glass {
+  @apply bg-white/90 backdrop-blur-xl border border-white dark:bg-zinc-900/90 dark:border-zinc-800/20 shadow-2xl;
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.card-sleek {
+  @apply bg-white dark:bg-zinc-900 border border-slate-200 dark:border-zinc-800 rounded-[32px] shadow-lg hover:shadow-2xl transition-all duration-300;
+}
+

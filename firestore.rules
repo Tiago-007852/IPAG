@@ -1,0 +1,109 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    match /test/connection {
+      allow read: if true;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() { return request.auth != null; }
+    function isVerified() { return isSignedIn() && request.auth.token.email_verified == true; }
+    function getRole() { return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role; }
+    function isAdmin() { return isSignedIn() && getRole() == "ADMIN"; }
+    function isTeacher() { return isSignedIn() && getRole() == "TEACHER"; }
+    function isParent() { return isSignedIn() && getRole() == "PARENT"; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+    function isValidId(id) { return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); }
+
+    // --- Entity Specific Validators ---
+    
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'name', 'email', 'role']) 
+        && data.keys().size() <= 7
+        && data.uid == request.auth.uid
+        && data.name is string && data.name.size() <= 100
+        && data.email is string && data.email.size() <= 100
+        && data.role in ['STUDENT', 'TEACHER', 'PARENT', 'ADMIN'];
+    }
+
+    function isValidGrade(data) {
+      return data.keys().hasAll(['studentId', 'subject', 'value', 'date'])
+        && data.keys().size() <= 8
+        && data.studentId is string
+        && data.subject is string && data.subject.size() <= 50
+        && data.value is number && data.value >= 0 && data.value <= 20
+        && data.date == request.time;
+    }
+
+    // --- Rules ---
+
+    match /users/{userId} {
+      // Allow users to read their own profile or Admins/Teachers to see students
+      allow get: if isSignedIn() && (request.auth.uid == userId || isAdmin() || isTeacher());
+      allow list: if isSignedIn() && (isAdmin() || isTeacher() || (resource.data.uid == request.auth.uid));
+      
+      // Standard users can only create their own profile once, with basic roles. 
+      // Admin role escalation must be blocked via restricted creation logic.
+      allow create: if isVerified() && isValidUser(incoming()) && incoming().role != "ADMIN" && incoming().uid == userId;
+      
+      // Only admins can update roles. Users can update their own name/avatar.
+      allow update: if isVerified() && isValidUser(incoming()) && (
+        (incoming().diff(existing()).affectedKeys().hasOnly(['name', 'avatar']) && userId == request.auth.uid) ||
+        isAdmin()
+      );
+    }
+
+    match /courses/{courseId} {
+      allow read: if true; // Public catalog
+      allow write: if isAdmin();
+    }
+
+    match /grades/{gradeId} {
+      allow get, list: if isSignedIn() && (
+        resource.data.studentId == request.auth.uid ||
+        isAdmin() ||
+        isTeacher()
+      );
+      allow create: if isVerified() && (isAdmin() || isTeacher()) && isValidGrade(incoming());
+      allow update: if isVerified() && (isAdmin() || isTeacher()) && isValidGrade(incoming()) 
+        && incoming().diff(existing()).affectedKeys().hasOnly(['value', 'date']);
+      allow delete: if isAdmin();
+    }
+
+    match /attendance/{attendanceId} {
+      allow get, list: if isSignedIn() && (
+        resource.data.studentId == request.auth.uid ||
+        isAdmin() ||
+        isTeacher()
+      );
+      allow write: if isVerified() && (isAdmin() || isTeacher());
+    }
+
+    match /assignments/{assignmentId} {
+      allow get, list: if isSignedIn() && (
+        resource.data.studentId == request.auth.uid ||
+        isAdmin() ||
+        isTeacher()
+      );
+      allow create: if isVerified() && (isAdmin() || isTeacher());
+      allow update: if isVerified() && (
+        (request.auth.uid == resource.data.studentId && incoming().diff(existing()).affectedKeys().hasOnly(['isCompleted'])) ||
+        isAdmin() ||
+        isTeacher()
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /news/{newsId} {
+      allow read: if true;
+      allow write: if isVerified() && (isAdmin() || isTeacher());
+    }
+  }
+}
